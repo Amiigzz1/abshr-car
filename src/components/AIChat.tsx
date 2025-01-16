@@ -25,8 +25,6 @@ interface UserData {
 export const AIChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [showApiInput, setShowApiInput] = useState(true);
   const [userData, setUserData] = useState<Partial<UserData>>({});
   const { toast } = useToast();
 
@@ -36,109 +34,72 @@ export const AIChat = () => {
     return availablePayment >= 750;
   };
 
-  const systemPrompt = `
-    أنت مساعد ودود يساعد في تقييم طلبات تمويل السيارات. اطلب المعلومات التالية بشكل لطيف ومهني:
-    - الجنسية
-    - رقم الجوال
-    - المدينة
-    - الراتب
-    - البنك
-    - الالتزامات الشهرية (إن وجدت)
-    - قطاع العمل
-    - اسم جهة العمل
-    - نوع السيارة المطلوبة
-    - الموديل واللون المفضل
-
-    اطلب معلومة واحدة في كل مرة. بعد جمع كل المعلومات، قم بتقييم الأهلية للتمويل.
-  `;
-
-  const sendMessage = async () => {
-    if (!apiKey && showApiInput) {
-      toast({
-        title: "مطلوب",
-        description: "الرجاء إدخال مفتاح API أولاً",
-        variant: "destructive",
-      });
-      return;
+  const generateResponse = (userMessage: string): Message => {
+    // Simple rule-based response generation
+    const lowerMessage = userMessage.toLowerCase();
+    
+    if (lowerMessage.includes('راتب')) {
+      const salary = parseFloat(userMessage.replace(/[^0-9.]/g, ''));
+      if (!isNaN(salary)) {
+        setUserData(prev => ({ ...prev, salary }));
+        return {
+          role: 'assistant',
+          content: 'شكراً على المعلومة. هل لديك أي التزامات شهرية؟'
+        };
+      }
+    }
+    
+    if (lowerMessage.includes('التزام')) {
+      const obligations = parseFloat(userMessage.replace(/[^0-9.]/g, ''));
+      if (!isNaN(obligations)) {
+        setUserData(prev => ({ ...prev, obligations }));
+        const { salary = 0 } = userData;
+        const isEligible = calculateEligibility(salary, obligations);
+        
+        return {
+          role: 'assistant',
+          content: isEligible 
+            ? 'بناءً على المعلومات المقدمة، أنت مؤهل للحصول على التمويل! هل ترغب في معرفة المزيد عن خياراتنا التمويلية؟'
+            : 'عذراً، بناءً على المعلومات المقدمة، قد لا تكون مؤهلاً للتمويل في الوقت الحالي. هل ترغب في مناقشة خيارات أخرى؟'
+        };
+      }
     }
 
+    // Default responses based on missing information
+    if (!userData.salary) {
+      return {
+        role: 'assistant',
+        content: 'من فضلك، أخبرني عن راتبك الشهري؟'
+      };
+    }
+
+    return {
+      role: 'assistant',
+      content: 'كيف يمكنني مساعدتك اليوم؟'
+    };
+  };
+
+  const sendMessage = () => {
     if (!inputMessage.trim()) return;
 
-    const newMessages = [...messages, { role: 'user', content: inputMessage }];
+    const userMessage: Message = {
+      role: 'user',
+      content: inputMessage
+    };
+
+    const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInputMessage('');
 
-    try {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-sonar-small-128k-online',
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt
-            },
-            ...newMessages
-          ],
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('فشل في الاتصال بالخدمة');
-      }
-
-      const data = await response.json();
-      const assistantMessage = data.choices[0].message.content;
-
-      setMessages([...newMessages, { role: 'assistant', content: assistantMessage }]);
-
-      // Update userData based on the latest message
-      // This is a simplified example - you'd want to add more sophisticated parsing
-      if (inputMessage.includes('الراتب')) {
-        const salary = parseFloat(inputMessage.replace(/[^0-9.]/g, ''));
-        setUserData(prev => ({ ...prev, salary }));
-      } else if (inputMessage.includes('التزامات')) {
-        const obligations = parseFloat(inputMessage.replace(/[^0-9.]/g, ''));
-        setUserData(prev => ({ ...prev, obligations }));
-      }
-
-    } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في الاتصال بالخدمة",
-        variant: "destructive",
-      });
-    }
+    // Generate and add AI response
+    const aiResponse = generateResponse(inputMessage);
+    setMessages([...newMessages, aiResponse]);
   };
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-lg mt-10">
       <h2 className="text-2xl font-bold text-primary text-center mb-6">المساعد الذكي للتمويل</h2>
       
-      {showApiInput && (
-        <div className="mb-4">
-          <Input
-            type="password"
-            placeholder="أدخل مفتاح API الخاص بك"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="mb-2"
-          />
-          <Button 
-            onClick={() => setShowApiInput(false)} 
-            disabled={!apiKey}
-            className="w-full"
-          >
-            تأكيد
-          </Button>
-        </div>
-      )}
-
       <ScrollArea className="h-[400px] border rounded-md p-4 mb-4">
         {messages.map((message, index) => (
           <div
