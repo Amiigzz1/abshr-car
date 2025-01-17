@@ -2,8 +2,8 @@ export type UserRole = 'admin' | 'sales' | 'marketing';
 
 export interface User {
   id: string;
-  email?: string; // جعل البريد الإلكتروني اختيارياً
-  role?: UserRole;
+  email?: string;
+  role?: string;
   created_at?: string;
 }
 
