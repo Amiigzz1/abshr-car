@@ -4,6 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import AdminDashboard from "./pages/admin/Dashboard";
+import SalesDashboard from "./pages/sales/Dashboard";
+import MarketingDashboard from "./pages/marketing/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -15,6 +18,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/sales" element={<SalesDashboard />} />
+          <Route path="/marketing" element={<MarketingDashboard />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
