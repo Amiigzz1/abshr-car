@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import SalesDashboard from "./pages/sales/Dashboard";
 import MarketingDashboard from "./pages/marketing/Dashboard";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/lib/supabase";
 
 const queryClient = new QueryClient();
 
@@ -20,13 +21,25 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
     return <Navigate to="/login" replace />;
   }
   
-  // Check if user has required role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-    
+  // تحقق من دور المستخدم باستخدام useQuery
+  const checkUserRole = async () => {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    return profile;
+  };
+  
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['userRole', user.id],
+    queryFn: checkUserRole
+  });
+  
+  if (isLoading) {
+    return <div>جاري التحميل...</div>;
+  }
+  
   if (!profile || !allowedRoles.includes(profile.role)) {
     return <Navigate to="/" replace />;
   }
