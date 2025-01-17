@@ -38,7 +38,14 @@ const workSectors = [
   "حكومي", "عسكري", "قطاع خاص", "أعمال حرة"
 ];
 
-const dataFields = [
+type DataField = {
+  key: keyof UserData;
+  question: string;
+  suggestions?: string[];
+  validation?: (value: any) => boolean;
+};
+
+const dataFields: DataField[] = [
   { key: 'nationality', question: 'ما هي جنسيتك؟', suggestions: ["سعودي", "مقيم"] },
   { key: 'phone', question: 'ما هو رقم جوالك؟ (يجب أن يبدأ بـ 05)', validation: (value: string) => /^05\d{8}$/.test(value) },
   { key: 'city', question: 'في أي مدينة تسكن؟', suggestions: saudiCities },
@@ -60,7 +67,6 @@ export const AIChat = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // فتح الشات تلقائياً عند تحميل الصفحة
     setIsOpen(true);
     setMessages([{
       role: 'assistant',
@@ -70,7 +76,7 @@ export const AIChat = () => {
 
   const calculateEligibility = (salary: number, obligations: number) => {
     const maxPayment = salary * 0.45;
-    const availablePayment = maxPayment - (obligations || 0);
+    const availablePayment = maxPayment - obligations;
     return {
       isEligible: availablePayment >= 750,
       availablePayment: Math.round(availablePayment)
@@ -120,21 +126,21 @@ export const AIChat = () => {
         return validationError;
       }
 
-      const currentField = dataFields[currentFieldIndex].key;
+      const currentField = dataFields[currentFieldIndex];
       let value: any = input;
       
-      if (currentField === 'salary' || currentField === 'obligations') {
+      if (currentField.key === 'salary' || currentField.key === 'obligations') {
         value = parseFloat(input.replace(/[^0-9.]/g, ''));
       }
 
-      setUserData(prev => ({ ...prev, [currentField]: value }));
+      setUserData(prev => ({ ...prev, [currentField.key]: value }));
       
       if (currentFieldIndex === dataFields.length - 1) {
         const review = reviewUserData();
-        const { salary, obligations } = { ...userData, [currentField]: value };
+        const updatedUserData = { ...userData, [currentField.key]: value };
         
-        if (salary !== undefined && obligations !== undefined) {
-          const { isEligible, availablePayment } = calculateEligibility(salary, obligations);
+        if (typeof updatedUserData.salary === 'number' && typeof updatedUserData.obligations === 'number') {
+          const { isEligible, availablePayment } = calculateEligibility(updatedUserData.salary, updatedUserData.obligations);
           return `${review}\n\n${
             isEligible
               ? `مبروك! أنت مؤهل للحصول على التمويل. المبلغ المتاح للقسط الشهري: ${availablePayment} ريال`
