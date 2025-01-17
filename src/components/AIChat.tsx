@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ChatMessage } from "./chat/ChatMessage";
@@ -6,7 +6,7 @@ import { ChatSuggestions } from "./chat/ChatSuggestions";
 import { ChatInput } from "./chat/ChatInput";
 import { calculateEligibility } from "@/utils/eligibilityCalculator";
 import { Message, UserData, dataFields } from "@/types/chat";
-import { MinusCircle } from "lucide-react";
+import { MinusCircle, MessageCircle } from "lucide-react";
 import { Button } from "./ui/button";
 
 export const AIChat = () => {
@@ -16,9 +16,19 @@ export const AIChat = () => {
   const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    setIsOpen(true);
+    if (isOpen && !isMinimized) {
+      scrollToBottom();
+    }
+  }, [messages, isOpen, isMinimized]);
+
+  useEffect(() => {
     setMessages([{
       role: 'assistant',
       content: 'مرحباً بك في أبشر كار! ' + dataFields[0].question
@@ -137,45 +147,57 @@ export const AIChat = () => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent side="left" className={`w-[400px] sm:w-[540px] ${isMinimized ? 'h-20' : ''}`}>
-        <SheetHeader className="flex flex-row items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleMinimize}
-            className="absolute left-4 top-4"
-          >
-            <MinusCircle className="h-6 w-6" />
-          </Button>
-          <SheetTitle className="text-right text-primary">مساعد أبشر كار الذكي</SheetTitle>
-        </SheetHeader>
-        
-        {!isMinimized && (
-          <>
-            <ScrollArea className="h-[calc(100vh-200px)] mt-4">
-              <div className="flex flex-col gap-4 p-4">
-                {messages.map((message, index) => (
-                  <ChatMessage key={index} message={message} />
-                ))}
-              </div>
-            </ScrollArea>
+    <>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent side="left" className={`w-[400px] sm:w-[540px] ${isMinimized ? 'h-20' : ''}`}>
+          <SheetHeader className="flex flex-row items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMinimize}
+              className="absolute left-4 top-4"
+            >
+              <MinusCircle className="h-6 w-6" />
+            </Button>
+            <SheetTitle className="text-right text-primary">مساعد أبشر كار الذكي</SheetTitle>
+          </SheetHeader>
+          
+          {!isMinimized && (
+            <>
+              <ScrollArea className="h-[calc(100vh-200px)] mt-4">
+                <div className="flex flex-col gap-4 p-4">
+                  {messages.map((message, index) => (
+                    <ChatMessage key={index} message={message} />
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
 
-            {currentFieldIndex < dataFields.length && dataFields[currentFieldIndex].suggestions && (
-              <ChatSuggestions
-                suggestions={dataFields[currentFieldIndex].suggestions || []}
-                onSuggestionClick={handleSuggestionClick}
+              {currentFieldIndex < dataFields.length && dataFields[currentFieldIndex].suggestions && (
+                <ChatSuggestions
+                  suggestions={dataFields[currentFieldIndex].suggestions || []}
+                  onSuggestionClick={handleSuggestionClick}
+                />
+              )}
+
+              <ChatInput
+                value={inputMessage}
+                onChange={setInputMessage}
+                onSend={() => sendMessage()}
               />
-            )}
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
 
-            <ChatInput
-              value={inputMessage}
-              onChange={setInputMessage}
-              onSend={() => sendMessage()}
-            />
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
+      {!isOpen && (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed left-4 bottom-4 rounded-full w-12 h-12 bg-primary hover:bg-primary/90 shadow-lg"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      )}
+    </>
   );
 };
