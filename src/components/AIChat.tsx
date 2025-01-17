@@ -70,17 +70,30 @@ export const AIChat = () => {
     setIsOpen(true);
     setMessages([{
       role: 'assistant',
-      content: 'مرحباً! أنا مساعدك الشخصي للتمويل. ' + dataFields[0].question
+      content: 'مرحباً بك في أبشر كار! ' + dataFields[0].question
     }]);
   }, []);
 
   const calculateEligibility = (salary: number, obligations: number) => {
-    const maxPayment = salary * 0.45;
+    const maxPayment = salary * 0.45; // 45% من الراتب كحد أقصى للقسط
     const availablePayment = maxPayment - obligations;
+    const minPayment = 750; // الحد الأدنى للقسط الشهري
+
     return {
-      isEligible: availablePayment >= 750,
-      availablePayment: Math.round(availablePayment)
+      isEligible: availablePayment >= minPayment,
+      availablePayment: Math.round(availablePayment),
+      details: {
+        maxAllowedPayment: Math.round(maxPayment),
+        currentObligations: obligations,
+        remainingCapacity: Math.round(availablePayment),
+        minRequiredPayment: minPayment
+      }
     };
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputMessage(suggestion);
+    sendMessage(suggestion);
   };
 
   const validateInput = (input: string, fieldIndex: number) => {
@@ -140,11 +153,16 @@ export const AIChat = () => {
         const updatedUserData = { ...userData, [currentField.key]: value };
         
         if (typeof updatedUserData.salary === 'number' && typeof updatedUserData.obligations === 'number') {
-          const { isEligible, availablePayment } = calculateEligibility(updatedUserData.salary, updatedUserData.obligations);
+          const { isEligible, availablePayment, details } = calculateEligibility(updatedUserData.salary, updatedUserData.obligations);
           return `${review}\n\n${
             isEligible
-              ? `مبروك! أنت مؤهل للحصول على التمويل. المبلغ المتاح للقسط الشهري: ${availablePayment} ريال`
-              : "عذراً، بناءً على المعلومات المقدمة، قد لا تكون مؤهلاً للتمويل في الوقت الحالي."
+              ? `مبروك! أنت مؤهل للحصول على التمويل.\n\nتفاصيل الأهلية:\n` +
+                `- الحد الأقصى للقسط الشهري: ${details.maxAllowedPayment} ريال\n` +
+                `- الالتزامات الحالية: ${details.currentObligations} ريال\n` +
+                `- المبلغ المتاح للقسط الشهري: ${details.remainingCapacity} ريال\n` +
+                `- الحد الأدنى المطلوب للقسط: ${details.minRequiredPayment} ريال`
+              : "عذراً، بناءً على المعلومات المقدمة، قد لا تكون مؤهلاً للتمويل في الوقت الحالي.\n\n" +
+                `السبب: المبلغ المتاح للقسط (${availablePayment} ريال) أقل من الحد الأدنى المطلوب (${details.minRequiredPayment} ريال)`
           }`;
         }
       } else {
@@ -153,7 +171,7 @@ export const AIChat = () => {
         let response = nextField.question;
         
         if (nextField.suggestions) {
-          response += "\nالاقتراحات المتاحة:\n" + nextField.suggestions.join(" - ");
+          response += "\nالاقتراحات المتاحة:";
         }
         
         return response;
@@ -162,17 +180,18 @@ export const AIChat = () => {
     return "شكراً لك على المعلومات المقدمة. هل لديك أي استفسارات أخرى؟";
   };
 
-  const sendMessage = () => {
-    if (!inputMessage.trim()) return;
+  const sendMessage = (customInput?: string) => {
+    const messageToSend = customInput || inputMessage;
+    if (!messageToSend.trim()) return;
 
     const userMessage: Message = {
       role: 'user',
-      content: inputMessage
+      content: messageToSend
     };
 
     const aiResponse: Message = {
       role: 'assistant',
-      content: processUserInput(inputMessage)
+      content: processUserInput(messageToSend)
     };
 
     setMessages(prev => [...prev, userMessage, aiResponse]);
@@ -183,7 +202,7 @@ export const AIChat = () => {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent side="left" className="w-[400px] sm:w-[540px]">
         <SheetHeader>
-          <SheetTitle className="text-right">المساعد الذكي للتمويل</SheetTitle>
+          <SheetTitle className="text-right text-primary">مساعد أبشر كار الذكي</SheetTitle>
         </SheetHeader>
         
         <ScrollArea className="h-[calc(100vh-200px)] mt-4">
@@ -206,8 +225,26 @@ export const AIChat = () => {
           </div>
         </ScrollArea>
 
+        {currentFieldIndex < dataFields.length && dataFields[currentFieldIndex].suggestions && (
+          <div className="flex flex-wrap gap-2 p-4 justify-end">
+            {dataFields[currentFieldIndex].suggestions?.map((suggestion, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                onClick={() => handleSuggestionClick(suggestion)}
+                className="text-primary hover:bg-primary/10"
+              >
+                {suggestion}
+              </Button>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-2 p-4 mt-2">
-          <Button onClick={sendMessage}>إرسال</Button>
+          <Button onClick={() => sendMessage()} className="bg-primary hover:bg-primary/90">
+            إرسال
+          </Button>
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}

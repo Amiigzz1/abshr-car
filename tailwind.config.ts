@@ -20,12 +20,12 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#1E3A8A",
+          DEFAULT: "#22C55E", // تغيير اللون الرئيسي إلى الأخضر
           foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#FBB03B",
-          foreground: "#1E3A8A",
+          DEFAULT: "#86EFAC", // تغيير اللون الثانوي إلى أخضر فاتح
+          foreground: "#064E3B",
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
