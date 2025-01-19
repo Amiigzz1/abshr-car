@@ -53,6 +53,8 @@ export type Database = {
           customer_phone: string
           id: string
           sales_agent_id: string | null
+          source_details: string | null
+          source_type: string | null
           status: string | null
           updated_at: string
         }
@@ -63,6 +65,8 @@ export type Database = {
           customer_phone: string
           id?: string
           sales_agent_id?: string | null
+          source_details?: string | null
+          source_type?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -73,6 +77,8 @@ export type Database = {
           customer_phone?: string
           id?: string
           sales_agent_id?: string | null
+          source_details?: string | null
+          source_type?: string | null
           status?: string | null
           updated_at?: string
         }
