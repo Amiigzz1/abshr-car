@@ -27,7 +27,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .maybeSingle(); // تغيير من single() إلى maybeSingle()
     return profile;
   };
   
