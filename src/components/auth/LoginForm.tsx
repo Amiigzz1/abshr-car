@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Lock, Mail } from 'lucide-react';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -33,12 +34,12 @@ export const LoginForm = () => {
 
       if (profile?.role) {
         navigate(`/${profile.role}`);
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: `مرحباً بك في نظام أبشر كار`,
+        });
       }
 
-      toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: "مرحباً بك في لوحة التحكم",
-      });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -51,40 +52,49 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-secondary/20" dir="rtl">
-      <Card className="w-[400px]">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">تسجيل الدخول</CardTitle>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-green-50 to-green-100" dir="rtl">
+      <Card className="w-[400px] shadow-lg">
+        <CardHeader className="space-y-4">
+          <div className="flex justify-center">
+            <img src="/logo.png" alt="أبشر كار" className="h-16" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-center text-primary">تسجيل الدخول للموظفين</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 البريد الإلكتروني
               </label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full"
-                placeholder="أدخل بريدك الإلكتروني"
-              />
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="pr-10"
+                  placeholder="أدخل بريدك الإلكتروني"
+                />
+                <Mail className="absolute top-3 right-3 h-4 w-4 text-gray-400" />
+              </div>
             </div>
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
                 كلمة المرور
               </label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full"
-                placeholder="أدخل كلمة المرور"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pr-10"
+                  placeholder="أدخل كلمة المرور"
+                />
+                <Lock className="absolute top-3 right-3 h-4 w-4 text-gray-400" />
+              </div>
             </div>
             <Button
               type="submit"
