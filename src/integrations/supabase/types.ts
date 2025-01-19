@@ -9,7 +9,149 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      cars: {
+        Row: {
+          brand: string
+          created_at: string
+          id: string
+          image_url: string | null
+          model: string
+          price: number
+          specs: Json | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          brand: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          model: string
+          price: number
+          specs?: Json | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          model?: string
+          price?: number
+          specs?: Json | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      finance_requests: {
+        Row: {
+          car_id: string | null
+          created_at: string
+          customer_name: string
+          customer_phone: string
+          id: string
+          sales_agent_id: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          car_id?: string | null
+          created_at?: string
+          customer_name: string
+          customer_phone: string
+          id?: string
+          sales_agent_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          car_id?: string | null
+          created_at?: string
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          sales_agent_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_requests_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_requests_sales_agent_id_fkey"
+            columns: ["sales_agent_id"]
+            isOneToOne: false
+            referencedRelation: "sales_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sales_agents: {
+        Row: {
+          active_requests: number | null
+          created_at: string
+          id: string
+          level: Database["public"]["Enums"]["sales_level"] | null
+          total_requests: number | null
+          updated_at: string
+        }
+        Insert: {
+          active_requests?: number | null
+          created_at?: string
+          id: string
+          level?: Database["public"]["Enums"]["sales_level"] | null
+          total_requests?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active_requests?: number | null
+          created_at?: string
+          id?: string
+          level?: Database["public"]["Enums"]["sales_level"] | null
+          total_requests?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_agents_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +160,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      sales_level: "trainee" | "qualified" | "expert"
+      user_role: "admin" | "sales" | "marketing" | "reviewer"
     }
     CompositeTypes: {
       [_ in never]: never
