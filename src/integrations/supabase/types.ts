@@ -175,7 +175,7 @@ export type Database = {
     }
     Enums: {
       sales_level: "trainee" | "qualified" | "expert"
-      user_role: "admin" | "sales" | "marketing" | "reviewer"
+      user_role: "admin" | "sales" | "marketing" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
