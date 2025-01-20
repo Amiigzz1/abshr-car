@@ -1,56 +1,48 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-export const LoginForm = () => {
+export const RegisterForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
       });
 
       if (error) throw error;
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .maybeSingle();
-
-      if (profile?.role === 'admin') {
-        navigate('/admin');
-      } else if (profile?.role === 'sales') {
-        navigate('/sales');
-      } else if (profile?.role === 'marketing') {
-        navigate('/marketing');
-      } else {
-        navigate('/');
-      }
-
       toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: "مرحباً بك في نظام أبشر كار",
+        title: "تم إنشاء الحساب بنجاح",
+        description: "يرجى تفعيل حسابك من خلال الرابط المرسل إلى بريدك الإلكتروني",
       });
 
+      navigate('/login');
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "خطأ في تسجيل الدخول",
+        title: "خطأ في إنشاء الحساب",
         description: error.message,
       });
     } finally {
@@ -65,10 +57,27 @@ export const LoginForm = () => {
           <div className="flex justify-center">
             <img src="/logo.png" alt="أبشر كار" className="h-16" />
           </div>
-          <CardTitle className="text-2xl font-bold text-center text-primary">تسجيل الدخول</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center text-primary">إنشاء حساب جديد</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleRegister} className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="fullName" className="text-sm font-medium">
+                الاسم الكامل
+              </label>
+              <div className="relative">
+                <Input
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  className="pr-10"
+                  placeholder="أدخل اسمك الكامل"
+                />
+                <User className="absolute top-3 right-3 h-4 w-4 text-gray-400" />
+              </div>
+            </div>
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 البريد الإلكتروني
@@ -108,12 +117,12 @@ export const LoginForm = () => {
               className="w-full"
               disabled={loading}
             >
-              {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+              {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
             </Button>
             <div className="text-center text-sm">
-              ليس لديك حساب؟{' '}
-              <Link to="/register" className="text-primary hover:underline">
-                إنشاء حساب جديد
+              لديك حساب بالفعل؟{' '}
+              <Link to="/login" className="text-primary hover:underline">
+                تسجيل الدخول
               </Link>
             </div>
           </form>
