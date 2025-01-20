@@ -11,8 +11,22 @@ import SalesDashboard from "./pages/sales/Dashboard";
 import MarketingDashboard from "./pages/marketing/Dashboard";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/lib/supabase";
+import { Loader2 } from "lucide-react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: string[] }) => {
   const { user } = useAuth();
@@ -21,26 +35,32 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
     return <Navigate to="/login" replace />;
   }
   
-  // تحقق من دور المستخدم باستخدام useQuery
   const checkUserRole = async () => {
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .maybeSingle(); // تغيير من single() إلى maybeSingle()
+      .maybeSingle();
+      
+    if (error) {
+      console.error('Error fetching user role:', error);
+      throw error;
+    }
+    
     return profile;
   };
   
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, isError } = useQuery({
     queryKey: ['userRole', user.id],
-    queryFn: checkUserRole
+    queryFn: checkUserRole,
+    retry: 2,
   });
   
   if (isLoading) {
-    return <div>جاري التحميل...</div>;
+    return <LoadingSpinner />;
   }
   
-  if (!profile || !allowedRoles.includes(profile.role)) {
+  if (isError || !profile || !allowedRoles.includes(profile.role)) {
     return <Navigate to="/" replace />;
   }
 
@@ -81,6 +101,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
