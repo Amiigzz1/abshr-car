@@ -104,6 +104,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          password: string
           role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string
         }
@@ -111,6 +112,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          password: string
           role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
@@ -118,6 +120,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          password?: string
           role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
@@ -163,7 +166,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_user_exists: {
+        Args: {
+          email: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       sales_level: "trainee" | "qualified" | "expert"
