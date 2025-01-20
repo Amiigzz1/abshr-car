@@ -31,12 +31,14 @@ export const EmployeeRegistrationForm = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("register_employee", {
-        admin_id: user.id,
-        employee_email: formData.email,
-        employee_password: formData.password,
-        employee_full_name: formData.fullName,
-        employee_role: formData.role,
+      const { data, error } = await supabase.functions.invoke('register-employee', {
+        body: {
+          admin_id: user.id,
+          employee_email: formData.email,
+          employee_password: formData.password,
+          employee_full_name: formData.fullName,
+          employee_role: formData.role,
+        },
       });
 
       if (error) throw error;
