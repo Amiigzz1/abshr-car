@@ -172,6 +172,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      register_employee: {
+        Args: {
+          admin_id: string
+          employee_email: string
+          employee_password: string
+          employee_full_name: string
+          employee_role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: string
+      }
     }
     Enums: {
       sales_level: "trainee" | "qualified" | "expert"

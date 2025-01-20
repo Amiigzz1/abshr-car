@@ -7,24 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { Users, FileText, UserCheck, AlertCircle } from "lucide-react";
-
-interface FinanceRequest {
-  id: string;
-  customer_name: string;
-  customer_phone: string;
-  status: string;
-  sales_agent: {
-    profiles: {
-      full_name: string;
-    };
-  };
-  car: {
-    brand: string;
-    model: string;
-    year: number;
-  };
-  created_at: string;
-}
+import { EmployeeRegistrationForm } from "@/components/admin/EmployeeRegistrationForm";
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -50,7 +33,7 @@ export default function AdminDashboard() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as FinanceRequest[];
+      return data;
     }
   });
 
@@ -121,6 +104,11 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Employee Registration Form */}
+      <div className="mb-8">
+        <EmployeeRegistrationForm />
       </div>
 
       <Card>
